@@ -34,7 +34,6 @@ def compare(predicta, predictb):
 class Instructor:
 
     def __init__(self, args, logger):
-        self.basic_model = None
         self.args = args
         self.logger = logger
         self.logger.info('> creating model {}'.format(args.model_name))
@@ -59,7 +58,10 @@ class Instructor:
         else:
             raise ValueError('unknown method')
 
+        self.basic_model = Self_Attention_New(base_model, args.num_classes)
+
         self.model.to(args.device)
+        self.basic_model.to(args.device)
         if args.device.type == 'cuda':
             self.logger.info('> cuda memory allocated: {}'.format(torch.cuda.memory_allocated(args.device.index)))
         self._print_args()
@@ -123,8 +125,9 @@ class Instructor:
         _params = filter(lambda p: p.requires_grad, self.model.parameters())
         criterion = CELoss()
         optimizer = torch.optim.AdamW(_params, lr=self.args.lr, weight_decay=self.args.decay)
-        state_dict = torch.load('./model.pkl')
-        self.basic_model = self.model.load_state_dict(state_dict)
+        # state_dict = torch.load('./model.pkl')
+        # self.basic_model.load_state_dict(state_dict)
+        self.basic_model.eval()
 
         # Warm up
         total_steps = len(train_dataloader) * self.args.num_epoch
